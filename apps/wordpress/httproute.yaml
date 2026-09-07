@@ -10,7 +10,7 @@ spec:
       name: traefik-gateway
       namespace: kube-system
   hostnames:
-    - wordpress.kung.dk
+    - kung.dk
   rules:
     - matches:
         - path:
