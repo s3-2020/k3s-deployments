@@ -12,6 +12,12 @@ spec:
     - flux.kung.dk
 
   rules:
-    - backendRefs:
+    - filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: lan-only
+      backendRefs:
         - name: flux-operator
           port: 9080

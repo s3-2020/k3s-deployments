@@ -11,6 +11,7 @@ spec:
       namespace: kube-system
   hostnames:
     - kung.dk
+    - www.kung.dk
   rules:
     - matches:
         - path:
