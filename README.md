@@ -29,7 +29,7 @@ apps/
 
 Each future app: its own directory + namespace, added to
 `apps/kustomization.yaml`. Full template and checklist:
-[new-application runbook](https://github.com/s3-2020/k3s-gitops/blob/main/docs/14-new-app-runbook.md)
+[new-application runbook]([https://github.com/s3-2020/k3s-deployments/blob/main/docs/1-new-app-runbook.md])
 — architecture and operations docs in the
 [k8s-gitops docs folder](https://github.com/s3-2020/k3s-gitops/tree/main/docs).
 
