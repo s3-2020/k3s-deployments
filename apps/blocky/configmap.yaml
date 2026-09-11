@@ -36,5 +36,7 @@ data:
 
     port: 53
     httpPort: 4000
+    prometheus:
+      enable: true
     logLevel: info
     logFormat: json
