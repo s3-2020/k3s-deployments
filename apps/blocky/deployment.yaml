@@ -17,15 +17,15 @@ spec:
       labels:
         app: blocky
     spec:
-      env:
-        - name: BLOCKY_CONFIG_FILE
-          value: /config/config.yml
-        - name: TZ
-          value: Europe/Copenhagen
       containers:
         - name: blocky
           image: ghcr.io/0xerr0r/blocky:v0.21
           imagePullPolicy: IfNotPresent
+          env:
+            - name: BLOCKY_CONFIG_FILE
+              value: /config/config.yml
+            - name: TZ
+              value: Europe/Copenhagen
           ports:
             - name: dns-tcp
               containerPort: 53
