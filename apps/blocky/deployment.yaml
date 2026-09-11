@@ -40,16 +40,20 @@ spec:
             - name: config
               mountPath: /config
               readOnly: true
+          startupProbe:
+            tcpSocket:
+              port: 53
+            periodSeconds: 5
+            failureThreshold: 24
           readinessProbe:
             tcpSocket:
               port: 53
-            initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             tcpSocket:
               port: 53
-            initialDelaySeconds: 10
             periodSeconds: 20
+            failureThreshold: 3
           resources:
             requests:
               cpu: 50m
