@@ -12,11 +12,6 @@ data:
         - 1.1.1.1:53
         - 9.9.9.9:53
 
-    caching:
-      cacheTime: 0h
-      prefetching: true
-      minCachingTime: 4h
-
     blocking:
       refreshPeriod: 12h
       downloadTimeout: 60s
@@ -43,4 +38,3 @@ data:
     httpPort: 4000
     logLevel: info
     logFormat: json
-    startApi: true
