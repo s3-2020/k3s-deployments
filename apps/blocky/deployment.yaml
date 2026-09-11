@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blocky
+  namespace: blocky
+  labels:
+    app: blocky
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: blocky
+  template:
+    metadata:
+      labels:
+        app: blocky
+    spec:
+      env:
+        - name: BLOCKY_CONFIG_FILE
+          value: /config/config.yml
+        - name: TZ
+          value: Europe/Copenhagen
+      containers:
+        - name: blocky
+          image: ghcr.io/0xerr0r/blocky:v0.21
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+            - name: api
+              containerPort: 4000
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: 53
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 53
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
+      volumes:
+        - name: config
+          configMap:
+            name: blocky-config

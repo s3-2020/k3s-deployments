@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blocky-config
+  namespace: blocky
+data:
+  config.yml: |
+    upstream:
+      default:
+        - 10.22.10.1:53   # UDM (slår lokale DNS-records op)
+      bootstrapDns:
+        - 1.1.1.1:53
+        - 9.9.9.9:53
+
+    caching:
+      cacheTime: 0h
+      prefetching: true
+      minCachingTime: 4h
+
+    blocking:
+      refreshPeriod: 12h
+      downloadTimeout: 60s
+      blackLists:
+        ads:
+          - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+          - https://adaway.org/hosts.txt
+          - https://phishing.army/download/phishing_army_blocklist_extended.txt
+        tracking:
+          - https://raw.githubusercontent.com/AdguardTeam/FiltersRegistry/master/filters/filter_3_Spy/filter.txt
+        malware:
+          - https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareAdGuardHome.txt
+      whiteLists:
+        ads:
+          - |
+            # egne hvide lister her, én pr. linje
+      clientGroupsBlock:
+        default:
+          - ads
+          - tracking
+          - malware
+
+    port: 53
+    httpPort: 4000
+    logLevel: info
+    logFormat: json
+    startApi: true
