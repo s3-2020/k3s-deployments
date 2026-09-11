@@ -8,6 +8,17 @@ spec:
   accessModes: ["ReadWriteOnce"]
   resources: { requests: { storage: 5Gi } }
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wordpress-php-uploads
+  namespace: wordpress
+data:
+  uploads.ini: |
+    upload_max_filesize = 64M
+    post_max_size = 64M
+    memory_limit = 256M
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,17 +48,16 @@ spec:
             - name: WORDPRESS_DB_PASSWORD
               valueFrom:
                 secretKeyRef: { name: wordpress-db, key: wp-password }
-            - name: PHP_UPLOAD_LIMIT
-              value: 64M
-            - name: PHP_MEMORY_LIMIT
-              value: 256M
           volumeMounts:
             - { name: content, mountPath: /var/www/html/wp-content }
+            - { name: php-uploads, mountPath: /usr/local/etc/php/conf.d/99-uploads.ini, subPath: uploads.ini }
           resources:
             requests: { cpu: 100m, memory: 256Mi }
       volumes:
         - name: content
           persistentVolumeClaim: { claimName: wordpress-content }
+        - name: php-uploads
+          configMap: { name: wordpress-php-uploads }
 ---
 apiVersion: v1
 kind: Service
