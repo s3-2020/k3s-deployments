@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: blocky
   namespace: blocky
+  labels:
+    app: blocky
   annotations:
     lbipam.cilium.io/ips: 10.22.50.62
 spec:
