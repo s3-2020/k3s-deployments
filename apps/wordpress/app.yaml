@@ -17,7 +17,8 @@ data:
   uploads.ini: |
     upload_max_filesize = 64M
     post_max_size = 64M
-    memory_limit = 256M
+    memory_limit = 512M
+    max_execution_time = 300
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -48,11 +49,15 @@ spec:
             - name: WORDPRESS_DB_PASSWORD
               valueFrom:
                 secretKeyRef: { name: wordpress-db, key: wp-password }
+            - name: WORDPRESS_CONFIG_EXTRA
+              value: |
+                define('WP_MEMORY_LIMIT', '256M');
+                define('WP_MAX_MEMORY_LIMIT', '512M');
           volumeMounts:
             - { name: content, mountPath: /var/www/html/wp-content }
             - { name: php-uploads, mountPath: /usr/local/etc/php/conf.d/99-uploads.ini, subPath: uploads.ini }
           resources:
-            requests: { cpu: 100m, memory: 256Mi }
+            requests: { cpu: 100m, memory: 512Mi }
       volumes:
         - name: content
           persistentVolumeClaim: { claimName: wordpress-content }
