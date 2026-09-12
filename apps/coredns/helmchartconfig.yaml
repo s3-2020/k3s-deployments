@@ -1,0 +1,12 @@
+# Persist 2 coredns replicas against k3s' bundled CoreDNS chart.
+# If k3s ever re-applies its bundled coredns manifest (manifests/ dir),
+# this HelmChartConfig pins replicaCount so the single-replica state
+# cannot come back.
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: coredns
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    replicaCount: 2
