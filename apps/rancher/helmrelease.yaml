@@ -15,6 +15,11 @@ spec:
         name: rancher-latest
         namespace: cattle-system
       interval: 1h
+  valuesFrom:
+    - secretKeyRef:
+        name: rancher-bootstrap
+        key: bootstrap-password
+        targetPath: bootstrapPassword
   values:
     hostname: rancher.kung.dk
     networkExposure:
