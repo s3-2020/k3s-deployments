@@ -87,12 +87,14 @@ data:
     ]
 
     def q(expr):
-        try:
-            url = PROM + "?query=" + urllib.parse.quote(expr)
-            with urllib.request.urlopen(url, timeout=10) as r:
-                return json.load(r)["data"]["result"]
-        except Exception:
-            return None
+        url = PROM + "?query=" + urllib.parse.quote(expr)
+        for attempt in (1, 2):
+            try:
+                with urllib.request.urlopen(url, timeout=10) as r:
+                    return json.load(r)["data"]["result"]
+            except Exception as e:
+                print("prom query failed attempt %d: %s: %s" % (attempt, type(e).__name__, e))
+        return None
 
     monitoring, comps = True, []
     for name, live, upexpr in COMPONENTS:
