@@ -51,9 +51,9 @@ data:
         ("API-server", 'up{job="apiserver"}'),
         ("kubelet", 'up{job="kubelet"}'),
         ("Cluster-DNS", 'up{job="coredns"}'),
-        ("Cilium net", 'up{job="cilium"}'),
+        ("Cilium net", 'up{job=~".*cilium.*"}'),
         ("DNS-filter", 'up{job="blocky"}'),
-        ("Monitoring", 'up{job="prometheus"}'),
+        ("Monitoring", 'up{job=~"prometheus-operated|.*kube-prometheus.*prometheus.*"}'),
     ]
 
     def q(expr):
@@ -86,11 +86,13 @@ data:
         return sorted(
             [{"name": x["metric"].get("alertname", "?"),
               "severity": x["metric"].get("severity", "info")}
-             for x in (q('ALERTS{alertstate="%s"}' % state) or [])],
+             for x in (q('ALERTS{alertstate="%s"}' % state) or [])
+             if x["metric"].get("severity", "info") != "none"],
             key=lambda a: a["severity"])
 
     recent = sorted({x["metric"].get("alertname", "?")
-                     for x in (q('changes(ALERTS{alertstate="firing"}[24h]) > 0') or [])})
+                     for x in (q('changes(ALERTS{alertstate="firing"}[24h]) > 0') or [])
+                     if x["metric"].get("severity", "info") != "none"})
 
     firing = alerts("firing")
     out = {"ok": monitoring and not firing,
