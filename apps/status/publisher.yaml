@@ -44,23 +44,61 @@ metadata:
   namespace: status
 data:
   publish.py: |
-    import json, ssl, urllib.request, datetime
-    q = ("http://prometheus-operated.monitoring.svc:9090/api/v1/query"
-         "?query=ALERTS%7Balertstate%3D%22firing%22%7D")
-    ok, alerts = False, []
-    try:
-        with urllib.request.urlopen(q, timeout=10) as r:
-            data = json.load(r)
-        for res in data["data"]["result"]:
-            m = res["metric"]
-            alerts.append({"name": m.get("alertname", "?"),
-                           "severity": m.get("severity", "info")})
-        ok = True
-    except Exception:
-        pass
-    out = {"ok": ok and not alerts,
-           "monitoring": ok,
-           "firing": sorted(alerts, key=lambda a: a["severity"]),
+    import json, ssl, urllib.request, urllib.parse, datetime
+    PROM = "http://prometheus-operated.monitoring.svc:9090/api/v1/query"
+
+    COMPONENTS = [
+        ("API-server", 'up{job="apiserver"}'),
+        ("kubelet", 'up{job="kubelet"}'),
+        ("Cluster-DNS", 'up{job="coredns"}'),
+        ("Cilium net", 'up{job="cilium"}'),
+        ("DNS-filter", 'up{job="blocky"}'),
+        ("Monitoring", 'up{job="prometheus"}'),
+    ]
+
+    def q(expr):
+        try:
+            url = PROM + "?query=" + urllib.parse.quote(expr)
+            with urllib.request.urlopen(url, timeout=10) as r:
+                return json.load(r)["data"]["result"]
+        except Exception:
+            return None
+
+    monitoring, comps = True, []
+    for name, live in COMPONENTS:
+        r = q(live)
+        if r is None:
+            monitoring = False
+            comps.append({"name": name, "status": "unknown", "uptime24h": None})
+            continue
+        vals = [x["value"][1] == "1" for x in r]
+        status = "up" if vals and all(vals) else ("down" if vals else "unknown")
+        u = q("avg_over_time(%s[24h])" % live)
+        up24 = None
+        if u:
+            try:
+                up24 = round(float(u[0]["value"][1]) * 100, 2)
+            except Exception:
+                pass
+        comps.append({"name": name, "status": status, "uptime24h": up24})
+
+    def alerts(state):
+        return sorted(
+            [{"name": x["metric"].get("alertname", "?"),
+              "severity": x["metric"].get("severity", "info")}
+             for x in (q('ALERTS{alertstate="%s"}' % state) or [])],
+            key=lambda a: a["severity"])
+
+    recent = sorted({x["metric"].get("alertname", "?")
+                     for x in (q('changes(ALERTS{alertstate="firing"}[24h]) > 0') or [])})
+
+    firing = alerts("firing")
+    out = {"ok": monitoring and not firing,
+           "monitoring": monitoring,
+           "components": comps,
+           "firing": firing,
+           "pending": alerts("pending"),
+           "recent": recent,
            "updated": datetime.datetime.now(datetime.timezone.utc).isoformat()}
     token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read()
     ctx = ssl.create_default_context(
