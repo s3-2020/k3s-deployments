@@ -132,6 +132,7 @@ data:
                 items = json.load(r)["items"]
         except Exception:
             return []
+        items = [e for e in items if e.get("type") == "Warning"]
         def ts(e):
             return (e.get("lastTimestamp") or e.get("eventTime")
                     or e["metadata"].get("creationTimestamp") or "")
