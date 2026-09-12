@@ -14,7 +14,7 @@ you are ready to deploy — Flux reconciles anything referenced from
 2. Add the directory to `apps/kustomization.yaml`.
 3. Commit + push to **this** repo; Flux applies within ~10m (or
    `flux reconcile kustomization deployments`).
-4. Create the explicit Pi-hole record `<name>.kung.dk A 10.22.10.60`
+4. Create the explicit UDM DNS record `<name>.kung.dk A 10.22.50.60`
    (no wildcards — see
    [08-dns-pki-tls.md](https://github.com/s3-2020/k3s-gitops/blob/main/docs/08-dns-pki-tls.md)).
 5. Validate (bottom of this file).
@@ -192,9 +192,9 @@ kubectl -n <name> get deploy,svc,httproute,pods
 kubectl -n <name> describe httproute <name>    # Accepted=True ResolvedRefs=True
 
 # through the gateway (before/without DNS)
-curl -sI --resolve <name>.kung.dk:80:10.22.10.60 http://<name>.kung.dk
-# after the Pi-hole record exists:
-nslookup <name>.kung.dk 10.22.10.112
+curl -sI --resolve <name>.kung.dk:80:10.22.50.60 http://<name>.kung.dk
+# after the UDM DNS record exists:
+nslookup <name>.kung.dk 10.22.50.62
 ```
 
 ## House rules
