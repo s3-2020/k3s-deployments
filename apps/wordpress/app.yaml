@@ -51,7 +51,7 @@ spec:
                 secretKeyRef: { name: wordpress-db, key: wp-password }
             - name: WORDPRESS_CONFIG_EXTRA
               value: |
-                define('WP_MEMORY_LIMIT', '256M');
+                define('WP_MEMORY_LIMIT', '512M');
                 define('WP_MAX_MEMORY_LIMIT', '512M');
           volumeMounts:
             - { name: content, mountPath: /var/www/html/wp-content }
