@@ -136,14 +136,28 @@ data:
         def ts(e):
             return (e.get("lastTimestamp") or e.get("eventTime")
                     or e["metadata"].get("creationTimestamp") or "")
+        cutoff = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
+        def fresh(e):
+            try:
+                return datetime.datetime.fromisoformat(ts(e).replace("Z", "+00:00")) >= cutoff
+            except Exception:
+                return True
+        items = [e for e in items if fresh(e)]
         items.sort(key=ts, reverse=True)
+        seen, uniq = set(), []
+        for e in items:
+            key = (e["involvedObject"].get("kind", "?"),
+                   e["involvedObject"].get("name", "?"), e.get("reason", ""))
+            if key not in seen:
+                seen.add(key)
+                uniq.append(e)
         return [{"time": ts(e),
                  "type": e.get("type", "Normal"),
                  "reason": e.get("reason", ""),
                  "object": "%s/%s" % (e["involvedObject"].get("kind", "?"),
                                       e["involvedObject"].get("name", "?")),
                  "message": (e.get("message") or "")[:160]}
-                for e in items[:10]]
+                for e in uniq[:10]]
 
     firing = alerts("firing")
     out = {"ok": monitoring and not firing,
