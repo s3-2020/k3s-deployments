@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: status
+  namespace: status
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: status }
+  template:
+    metadata:
+      labels: { app: status }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1-alpine
+          ports: [{ containerPort: 80 }]
+          volumeMounts:
+            - name: json
+              mountPath: /usr/share/nginx/html/status
+              readOnly: true
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+      volumes:
+        - name: json
+          configMap:
+            name: status-json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: status
+  namespace: status
+spec:
+  selector: { app: status }
+  ports: [{ port: 80, targetPort: 80 }]

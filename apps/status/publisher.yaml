@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: status-json
+  namespace: status
+data:
+  alerts.json: '{"ok": false, "monitoring": false, "firing": [], "updated": null}'
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: status-publisher
+  namespace: status
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: status-publisher
+  namespace: status
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    resourceNames: ["status-json"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: status-publisher
+  namespace: status
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: status-publisher
+subjects:
+  - kind: ServiceAccount
+    name: status-publisher
+    namespace: status
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: status-publisher
+  namespace: status
+data:
+  publish.py: |
+    import json, ssl, urllib.request, datetime
+    q = ("http://prometheus-operated.monitoring.svc:9090/api/v1/query"
+         "?query=ALERTS%7Balertstate%3D%22firing%22%7D")
+    ok, alerts = False, []
+    try:
+        with urllib.request.urlopen(q, timeout=10) as r:
+            data = json.load(r)
+        for res in data["data"]["result"]:
+            m = res["metric"]
+            alerts.append({"name": m.get("alertname", "?"),
+                           "severity": m.get("severity", "info")})
+        ok = True
+    except Exception:
+        pass
+    out = {"ok": ok and not alerts,
+           "monitoring": ok,
+           "firing": sorted(alerts, key=lambda a: a["severity"]),
+           "updated": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+    token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read()
+    ctx = ssl.create_default_context(
+        cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+    req = urllib.request.Request(
+        "https://kubernetes.default.svc/api/v1/namespaces/status/configmaps/status-json",
+        data=json.dumps({"data": {"alerts.json": json.dumps(out)}}).encode(),
+        method="PATCH",
+        headers={"Authorization": "Bearer " + token,
+                 "Content-Type": "application/strategic-merge-patch+json"})
+    urllib.request.urlopen(req, context=ctx, timeout=10)
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: status-publisher
+  namespace: status
+spec:
+  schedule: "* * * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          serviceAccountName: status-publisher
+          containers:
+            - name: publish
+              image: python:3-alpine
+              command: ["python", "/cfg/publish.py"]
+              volumeMounts:
+                - { name: cfg, mountPath: /cfg }
+              resources:
+                requests: { cpu: 10m, memory: 32Mi }
+          volumes:
+            - name: cfg
+              configMap: { name: status-publisher }
