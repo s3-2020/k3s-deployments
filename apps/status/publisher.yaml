@@ -47,13 +47,17 @@ data:
     import json, ssl, urllib.request, urllib.parse, datetime
     PROM = "http://prometheus-operated.monitoring.svc:9090/api/v1/query"
 
+    CILIUM = ('min(kube_daemonset_status_number_ready{daemonset="cilium"}) '
+              '== bool min(kube_daemonset_status_desired_number_scheduled{daemonset="cilium"})')
+
     COMPONENTS = [
-        ("API-server", 'up{job="apiserver"}'),
-        ("kubelet", 'up{job="kubelet"}'),
-        ("Cluster-DNS", 'up{job="coredns"}'),
-        ("Cilium net", 'up{job=~".*cilium.*"}'),
-        ("DNS-filter", 'up{job="blocky"}'),
-        ("Monitoring", 'up{job=~"prometheus-operated|.*kube-prometheus.*prometheus.*"}'),
+        ("API-server", 'up{job="apiserver"}', 'avg_over_time(up{job="apiserver"}[24h:1m])'),
+        ("kubelet", 'up{job="kubelet"}', 'avg_over_time(up{job="kubelet"}[24h:1m])'),
+        ("Cluster-DNS", 'up{job="coredns"}', 'avg_over_time(up{job="coredns"}[24h:1m])'),
+        ("Cilium net", CILIUM, 'avg_over_time((%s)[24h:1m])' % CILIUM),
+        ("DNS-filter", 'up{job="blocky"}', 'avg_over_time(up{job="blocky"}[24h:1m])'),
+        ("Monitoring", 'up{job=~"prometheus-operated|.*kube-prometheus.*prometheus.*"}',
+         'avg_over_time(up{job=~"prometheus-operated|.*kube-prometheus.*prometheus.*"}[24h:1m])'),
     ]
 
     def q(expr):
@@ -65,7 +69,7 @@ data:
             return None
 
     monitoring, comps = True, []
-    for name, live in COMPONENTS:
+    for name, live, upexpr in COMPONENTS:
         r = q(live)
         if r is None:
             monitoring = False
@@ -73,7 +77,7 @@ data:
             continue
         vals = [x["value"][1] == "1" for x in r]
         status = "up" if vals and all(vals) else ("down" if vals else "unknown")
-        u = q("avg_over_time(%s[24h])" % live)
+        u = q(upexpr)
         up24 = None
         if u:
             try:
