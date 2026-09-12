@@ -37,6 +37,28 @@ subjects:
     name: status-publisher
     namespace: status
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: status-publisher-events
+rules:
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: status-publisher-events
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: status-publisher-events
+subjects:
+  - kind: ServiceAccount
+    name: status-publisher
+    namespace: status
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -46,6 +68,10 @@ data:
   publish.py: |
     import json, ssl, urllib.request, urllib.parse, datetime
     PROM = "http://prometheus-operated.monitoring.svc:9090/api/v1/query"
+    API = "https://kubernetes.default.svc"
+    TOKEN = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read()
+    CTX = ssl.create_default_context(
+        cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
 
     CILIUM = ('min(kube_daemonset_status_number_ready{daemonset="cilium"}) '
               '== bool min(kube_daemonset_status_desired_number_scheduled{daemonset="cilium"})')
@@ -98,6 +124,26 @@ data:
                      for x in (q('changes(ALERTS{alertstate="firing"}[24h]) > 0') or [])
                      if x["metric"].get("severity", "info") != "none"})
 
+    def events():
+        try:
+            req = urllib.request.Request(API + "/api/v1/events?limit=500",
+                                         headers={"Authorization": "Bearer " + TOKEN})
+            with urllib.request.urlopen(req, context=CTX, timeout=10) as r:
+                items = json.load(r)["items"]
+        except Exception:
+            return []
+        def ts(e):
+            return (e.get("lastTimestamp") or e.get("eventTime")
+                    or e["metadata"].get("creationTimestamp") or "")
+        items.sort(key=ts, reverse=True)
+        return [{"time": ts(e),
+                 "type": e.get("type", "Normal"),
+                 "reason": e.get("reason", ""),
+                 "object": "%s/%s" % (e["involvedObject"].get("kind", "?"),
+                                      e["involvedObject"].get("name", "?")),
+                 "message": (e.get("message") or "")[:160]}
+                for e in items[:10]]
+
     firing = alerts("firing")
     out = {"ok": monitoring and not firing,
            "monitoring": monitoring,
@@ -105,17 +151,15 @@ data:
            "firing": firing,
            "pending": alerts("pending"),
            "recent": recent,
+           "events": events(),
            "updated": datetime.datetime.now(datetime.timezone.utc).isoformat()}
-    token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read()
-    ctx = ssl.create_default_context(
-        cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
     req = urllib.request.Request(
         "https://kubernetes.default.svc/api/v1/namespaces/status/configmaps/status-json",
         data=json.dumps({"data": {"alerts.json": json.dumps(out)}}).encode(),
         method="PATCH",
-        headers={"Authorization": "Bearer " + token,
+        headers={"Authorization": "Bearer " + TOKEN,
                  "Content-Type": "application/strategic-merge-patch+json"})
-    urllib.request.urlopen(req, context=ctx, timeout=10)
+    urllib.request.urlopen(req, context=CTX, timeout=10)
 ---
 apiVersion: batch/v1
 kind: CronJob
