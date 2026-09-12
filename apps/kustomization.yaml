@@ -6,5 +6,6 @@ resources:
   - hubble
   - grafana
   - flux
+  - rancher
   - wordpress
   - prometheus
