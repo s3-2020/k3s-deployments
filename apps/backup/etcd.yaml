@@ -49,7 +49,7 @@ spec:
                   SRC=/snapshots DST=/backup
                   mkdir -p "$DST"
                   new=0
-                  for f in "$SRC"/*.db; do
+                  for f in "$SRC"/etcd-snapshot-*; do
                     [ -f "$f" ] || continue
                     out="$DST/$(basename "$f").gz"
                     if [ ! -f "$out" ]; then
