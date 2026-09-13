@@ -161,8 +161,17 @@ Notes: `Retain` reclaim policy (see
 
 ### Secrets
 
-**Do not commit secret values.** Current pattern: create the Secret
-out-of-band (`kubectl create secret generic ...`), reference it from Git:
+**Do not commit plaintext secret values.** Pattern since 2026-09-13: write
+the Secret manifest under `secrets/` in this repo and SOPS-encrypt it:
+
+```bash
+# create secrets/<name>.sops.yaml (Secret manifest, stringData), then:
+sops --encrypt --in-place secrets/<name>.sops.yaml
+# add the file to secrets/kustomization.yaml, commit, push
+```
+
+Flux's dedicated `secrets` Kustomization decrypts it via the cluster-held
+age key and applies it; the app then references the Secret by name:
 
 ```yaml
           envFrom:
@@ -170,9 +179,8 @@ out-of-band (`kubectl create secret generic ...`), reference it from Git:
                 name: <name>-credentials
 ```
 
-Target state is SOPS + age (see
-[11-security.md](https://github.com/s3-2020/k3s-gitops/blob/main/docs/11-security.md))
-— not yet implemented.
+Key custody and cold-start order:
+[11-security.md](https://github.com/s3-2020/k3s-gitops/blob/main/docs/11-security.md).
 
 ### More replicas
 
