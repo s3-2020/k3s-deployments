@@ -1,4 +1,4 @@
-# 1 — Adding a New Application (runbook + template)
+# 01 - Adding a New Application (runbook + template)
 
 Every user-managed app lives in this repo (`k3s-deployments`), in its own
 namespace under `apps/<name>/`, is composed by `apps/kustomization.yaml`, and
