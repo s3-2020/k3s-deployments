@@ -1,0 +1,1378 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: truenas-nodes-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  truenas-nodes-dashboard.json: |
+    {
+     "uid": "homelab-nodes-storage",
+     "title": "Noder & Storage - TrueNAS + k1-k3",
+     "tags": [
+      "homelab",
+      "truenas",
+      "nodes"
+     ],
+     "timezone": "Europe/Copenhagen",
+     "schemaVersion": 39,
+     "version": 1,
+     "editable": true,
+     "refresh": "1m",
+     "time": {
+      "from": "6h",
+      "to": "now"
+     },
+     "templating": {
+      "list": []
+     },
+     "annotations": {
+      "list": [
+       {
+        "builtIn": 1,
+        "datasource": {
+         "type": "grafana",
+         "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+       }
+      ]
+     },
+     "panels": [
+      {
+       "id": 101,
+       "type": "text",
+       "title": "Om dashboardet",
+       "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 0
+       },
+       "options": {
+        "mode": "markdown",
+        "content": "**noder (k1-k3)** måles af node-exporter og virker med det samme.\n\n**TrueNAS-rækken** kræver at node-exporter kører på TrueNAS (Apps → OpenMetrics), ellers står graferne tomme. Målingerne kommer fra `10.22.10.50:9100`, og ZFS-datasets vises pr. mountpoint."
+       }
+      },
+      {
+       "id": 102,
+       "type": "row",
+       "title": "Kubernetes-noder: kapacitet",
+       "collapsed": false,
+       "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+       },
+       "panels": []
+      },
+      {
+       "id": 103,
+       "type": "stat",
+       "title": "CPU brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 6
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "(100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\",instance!~\"10\\.22\\.10\\..*\"}[$__rate_interval])) * 100)) * on(instance) group_left(nodename) node_uname_info"
+        }
+       ]
+      },
+      {
+       "id": 104,
+       "type": "stat",
+       "title": "RAM brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 6
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "((1 - (avg by (instance) (node_memory_MemAvailable_bytes{instance!~\"10\\.22\\.10\\..*\"} / node_memory_MemTotal_bytes{instance!~\"10\\.22\\.10\\..*\"})) * 100)) * on(instance) group_left(nodename) node_uname_info"
+        }
+       ]
+      },
+      {
+       "id": 105,
+       "type": "stat",
+       "title": "Load 1m",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 6
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "short",
+         "decimals": 2,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "avg by (instance) (node_load1{instance!~\"10\\.22\\.10\\..*\"}) * on(instance) group_left(nodename) node_uname_info"
+        }
+       ]
+      },
+      {
+       "id": 106,
+       "type": "stat",
+       "title": "Disk / brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 6
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "((1 - (node_filesystem_avail_bytes{instance!~\"10\\.22\\.10\\..*\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{instance!~\"10\\.22\\.10\\..*\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"})) * 100) * on(instance) group_left(nodename) node_uname_info"
+        }
+       ]
+      },
+      {
+       "id": 107,
+       "type": "timeseries",
+       "title": "CPU % pr. node",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 11
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100,
+         "decimals": 1
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "(100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\",instance!~\"10\\.22\\.10\\..*\"}[$__rate_interval])) * 100)) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 108,
+       "type": "timeseries",
+       "title": "Hukommelse brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 11
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100,
+         "decimals": 1
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "((1 - (avg by (instance) (node_memory_MemAvailable_bytes{instance!~\"10\\.22\\.10\\..*\"} / node_memory_MemTotal_bytes{instance!~\"10\\.22\\.10\\..*\"})) * 100)) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 109,
+       "type": "timeseries",
+       "title": "Load 1 / 5 / 15",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 11
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "short",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "avg by (instance) (node_load1{instance!~\"10\\.22\\.10\\..*\"}) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 110,
+       "type": "timeseries",
+       "title": "Oppetid",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 11
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "s",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null,
+         "decimals": 0
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "(time() - node_boot_time_seconds{instance!~\"10\\.22\\.10\\..*\"}) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 111,
+       "type": "row",
+       "title": "Kubernetes-noder: disk og netværk",
+       "collapsed": false,
+       "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 20
+       },
+       "panels": []
+      },
+      {
+       "id": 112,
+       "type": "timeseries",
+       "title": "Rod-filsystem brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 21
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "((1 - (node_filesystem_avail_bytes{instance!~\"10\\.22\\.10\\..*\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{instance!~\"10\\.22\\.10\\..*\",mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs\"})) * 100) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 113,
+       "type": "timeseries",
+       "title": "Monterede iSCSI-volumener (ext4) brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 21
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "((1 - (node_filesystem_avail_bytes{instance!~\"10\\.22\\.10\\..*\",fstype=\"ext4\"} / node_filesystem_size_bytes{instance!~\"10\\.22\\.10\\..*\",fstype=\"ext4\"})) * 100) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}} {{mountpoint}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 114,
+       "type": "timeseries",
+       "title": "Disk læs / skriv",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 21
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "Bps",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum by (instance) (rate(node_disk_read_bytes_total{instance!~\"10\\.22\\.10\\..*\"}[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}} læs",
+         "interval": "",
+         "editorMode": "code"
+        },
+        {
+         "refId": "B",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum by (instance) (rate(node_disk_written_bytes_total{instance!~\"10\\.22\\.10\\..*\"}[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}} skriv",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 115,
+       "type": "timeseries",
+       "title": "Netværk mod / fra",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 21
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "Bps",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum by (instance) (rate(node_network_receive_bytes_total{instance!~\"10\\.22\\.10\\..*\",device!~\"lo|veth.*|cilium.*|lxc.*|tap.*|flannel.*|kube.*\"}[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}} mod",
+         "interval": "",
+         "editorMode": "code"
+        },
+        {
+         "refId": "B",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum by (instance) (rate(node_network_transmit_bytes_total{instance!~\"10\\.22\\.10\\..*\",device!~\"lo|veth.*|cilium.*|lxc.*|tap.*|flannel.*|kube.*\"}[$__rate_interval])) * on(instance) group_left(nodename) node_uname_info",
+         "legendFormat": "{{nodename}} fra",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 116,
+       "type": "row",
+       "title": "TrueNAS (10.22.10.50)",
+       "collapsed": false,
+       "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 30
+       },
+       "panels": []
+      },
+      {
+       "id": 117,
+       "type": "stat",
+       "title": "tank brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 0,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "(100 - (node_filesystem_avail_bytes{instance=~\"10\\.22\\.10\\.50:.*\",mountpoint=\"/mnt/tank\",fstype=\"zfs\"} / node_filesystem_size_bytes{instance=~\"10\\.22\\.10\\.50:.*\",mountpoint=\"/mnt/tank\",fstype=\"zfs\"}) * 100)"
+        }
+       ]
+      },
+      {
+       "id": 118,
+       "type": "stat",
+       "title": "CPU brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 3,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\",instance=~\"10\\.22\\.10\\.50:.*\"}[$__rate_interval])) * 100)"
+        }
+       ]
+      },
+      {
+       "id": 119,
+       "type": "stat",
+       "title": "Load 1m",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 6,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "short",
+         "decimals": 2,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "node_load1{instance=~\"10\\.22\\.10\\.50:.*\"}"
+        }
+       ]
+      },
+      {
+       "id": 120,
+       "type": "stat",
+       "title": "Antal datasets",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 3,
+        "x": 9,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "short",
+         "decimals": 0,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "count(node_filesystem_size_bytes{instance=~\"10\\.22\\.10\\.50:.*\",fstype=\"zfs\"})"
+        }
+       ]
+      },
+      {
+       "id": 121,
+       "type": "timeseries",
+       "title": "ZFS dataset brugt %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 36
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "(100 - (node_filesystem_avail_bytes{instance=~\"10\\.22\\.10\\.50:.*\",fstype=\"zfs\"} / node_filesystem_size_bytes{instance=~\"10\\.22\\.10\\.50:.*\",fstype=\"zfs\"}) * 100)",
+         "legendFormat": "{{mountpoint}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 122,
+       "type": "timeseries",
+       "title": "ZFS dataset ledig plads",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 36
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "bytes",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "node_filesystem_avail_bytes{instance=~\"10\\.22\\.10\\.50:.*\",fstype=\"zfs\"}",
+         "legendFormat": "{{mountpoint}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 123,
+       "type": "timeseries",
+       "title": "CPU % og load",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 45
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\",instance=~\"10\\.22\\.10\\.50:.*\"}[$__rate_interval])) * 100)",
+         "legendFormat": "CPU %",
+         "interval": "",
+         "editorMode": "code"
+        },
+        {
+         "refId": "B",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "node_load1{instance=~\"10\\.22\\.10\\.50:.*\"}",
+         "legendFormat": "load 1m",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 124,
+       "type": "timeseries",
+       "title": "Disk aktivitet (alle pools)",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 45
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "Bps",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum(rate(node_disk_read_bytes_total{instance=~\"10\\.22\\.10\\.50:.*\"}[$__rate_interval]))",
+         "legendFormat": "læs",
+         "interval": "",
+         "editorMode": "code"
+        },
+        {
+         "refId": "B",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum(rate(node_disk_written_bytes_total{instance=~\"10\\.22\\.10\\.50:.*\"}[$__rate_interval]))",
+         "legendFormat": "skriv",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 125,
+       "type": "timeseries",
+       "title": "Netværk mod / fra",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 45
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "Bps",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum(rate(node_network_receive_bytes_total{instance=~\"10\\.22\\.10\\.50:.*\",device!~\"lo\"}[$__rate_interval]))",
+         "legendFormat": "mod",
+         "interval": "",
+         "editorMode": "code"
+        },
+        {
+         "refId": "B",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "sum(rate(node_network_transmit_bytes_total{instance=~\"10\\.22\\.10\\.50:.*\",device!~\"lo\"}[$__rate_interval]))",
+         "legendFormat": "fra",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 126,
+       "type": "text",
+       "title": "Mangler på TrueNAS-rækken",
+       "gridPos": {
+        "h": 9,
+        "w": 6,
+        "x": 18,
+        "y": 45
+       },
+       "options": {
+        "mode": "markdown",
+        "content": "Hukommelse på TrueNAS er bevidst udeladt: node-exporter på FreeBSD bruger andre metric-navne end Linux. Når OpenMetrics-appen kører, send så outputtet fra\n`curl -s 10.22.10.50:9100/metrics | grep '^node_memory' | head`\nså tilføjes en RAM-graf med de korrekte navne. Samme vej kan ZFS ARC og disk-temperatur (smartctl_exporter, port 9633) tilføjes."
+       }
+      }
+     ]
+    }

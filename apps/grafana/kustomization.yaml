@@ -4,4 +4,5 @@ kind: Kustomization
 resources:
   - httproute.yaml
   - alerts-dashboard.yaml
+  - truenas-nodes-dashboard.yaml
   - middleware.yaml
