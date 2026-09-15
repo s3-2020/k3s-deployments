@@ -17,7 +17,7 @@ data:
      ],
      "timezone": "Europe/Copenhagen",
      "schemaVersion": 39,
-     "version": 1,
+     "version": 2,
      "editable": true,
      "refresh": "1m",
      "time": {
@@ -56,7 +56,7 @@ data:
        },
        "options": {
         "mode": "markdown",
-        "content": "**noder (k1-k3)** måles af node-exporter og virker med det samme.\n\n**TrueNAS-rækken** kræver at node-exporter kører på TrueNAS (Apps → OpenMetrics), ellers står graferne tomme. Målingerne kommer fra `10.22.10.50:9100`, og ZFS-datasets vises pr. mountpoint."
+        "content": "**noder (k1-k3)** måles af node-exporter og virker med det samme.\n\n**TrueNAS-rækken** kræver en exporter på TrueNAS og står tom indtil den er der. Der er ingen OpenMetrics-app i community-kataloget (det er en Enterprise-funktion), så den skal køres som Custom App - se `infrastructure/truenas-exporter/README.md` i k3s-gitops. Målingerne hentes fra `10.22.10.50:9100`, og ZFS-datasets vises pr. mountpoint."
        }
       },
       {
@@ -1371,7 +1371,7 @@ data:
        },
        "options": {
         "mode": "markdown",
-        "content": "Hukommelse på TrueNAS er bevidst udeladt: node-exporter på FreeBSD bruger andre metric-navne end Linux. Når OpenMetrics-appen kører, send så outputtet fra\n`curl -s 10.22.10.50:9100/metrics | grep '^node_memory' | head`\nså tilføjes en RAM-graf med de korrekte navne. Samme vej kan ZFS ARC og disk-temperatur (smartctl_exporter, port 9633) tilføjes."
+        "content": "RAM på TrueNAS mangler bevidst indtil videre: det afhænger af hvilken exporter I vælger (node-exporter sender `node_memory_*`, en TrueNAS-API-exporter sender sine egne navne). Når den kører, send så outputtet fra\n`curl -s 10.22.10.50:9100/metrics | grep -E '^(node_memory|truenas)' | head`\nså tilføjes panelet med de korrekte navne. Disk-temperaturer kræver en ekstra smartctl_exporter (port 9633)."
        }
       }
      ]
