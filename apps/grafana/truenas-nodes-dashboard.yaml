@@ -17,7 +17,7 @@ data:
      ],
      "timezone": "Europe/Copenhagen",
      "schemaVersion": 39,
-     "version": 2,
+     "version": 3,
      "editable": true,
      "refresh": "1m",
      "time": {
@@ -797,7 +797,7 @@ data:
       {
        "id": 116,
        "type": "row",
-       "title": "TrueNAS (10.22.10.50)",
+       "title": "Volumener (kubelet)",
        "collapsed": false,
        "gridPos": {
         "h": 1,
@@ -809,6 +809,206 @@ data:
       },
       {
        "id": 117,
+       "type": "timeseries",
+       "title": "Forbrugt procent pr. volumen",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": 0,
+         "max": 100,
+         "decimals": 1
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100",
+         "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 118,
+       "type": "timeseries",
+       "title": "Forbrugt plads pr. volumen",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 12,
+        "y": 31
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "bytes",
+         "custom": {
+          "fillOpacity": 8,
+          "lineWidth": 1,
+          "showPoints": "never"
+         },
+         "min": null,
+         "max": null
+        },
+        "overrides": []
+       },
+       "options": {
+        "legend": {
+         "displayMode": "list",
+         "placement": "bottom",
+         "calcs": [
+          "mean",
+          "max"
+         ]
+        },
+        "tooltip": {
+         "mode": "multi",
+         "sort": "desc"
+        }
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "kubelet_volume_stats_used_bytes",
+         "legendFormat": "{{namespace}}/{{persistentvolumeclaim}}",
+         "interval": "",
+         "editorMode": "code"
+        }
+       ]
+      },
+      {
+       "id": 119,
+       "type": "stat",
+       "title": "Volumen med højest forbrug %",
+       "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+       },
+       "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 40
+       },
+       "fieldConfig": {
+        "defaults": {
+         "unit": "percent",
+         "decimals": 1,
+         "thresholds": {
+          "mode": "absolute",
+          "steps": [
+           {
+            "color": "green",
+            "value": null
+           },
+           {
+            "color": "orange",
+            "value": 80
+           },
+           {
+            "color": "red",
+            "value": 90
+           }
+          ]
+         },
+         "min": 0,
+         "max": 100
+        },
+        "overrides": []
+       },
+       "options": {
+        "reduceOptions": {
+         "calcs": [
+          "lastNotNull"
+         ]
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "auto"
+       },
+       "targets": [
+        {
+         "refId": "A",
+         "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+         },
+         "expr": "max(kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes * 100)"
+        }
+       ]
+      },
+      {
+       "id": 120,
+       "type": "text",
+       "title": "Om volumenerne",
+       "gridPos": {
+        "h": 4,
+        "w": 18,
+        "x": 6,
+        "y": 40
+       },
+       "options": {
+        "mode": "markdown",
+        "content": "Målt af kubelet på den node volumenet er monteret på, altså hvad ext4 faktisk brugger - ikke hvad ZVOL'en er allokeret til. En ZVOL melder om allokerede blokke, så `used` på datasættet på TrueNAS kan ligge højere end tallene her (se `docs/09-storage-truenas-csi.md` i k3s-gitops).\n\n`etcd-backups` vises kun mens backup-CronJobbet har volumelet monteret, så det dukker op og forsvinder fra graferne. Volumener med flere tusinde tegn lange navne (prometheus-db) kan beskæres i legenden med kolonnebredden."
+       }
+      },
+      {
+       "id": 121,
+       "type": "row",
+       "title": "TrueNAS (10.22.10.50)",
+       "collapsed": false,
+       "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 45
+       },
+       "panels": []
+      },
+      {
+       "id": 122,
        "type": "stat",
        "title": "tank brugt %",
        "datasource": {
@@ -819,7 +1019,7 @@ data:
         "h": 4,
         "w": 3,
         "x": 0,
-        "y": 31
+        "y": 46
        },
        "fieldConfig": {
         "defaults": {
@@ -869,7 +1069,7 @@ data:
        ]
       },
       {
-       "id": 118,
+       "id": 123,
        "type": "stat",
        "title": "CPU brugt %",
        "datasource": {
@@ -880,7 +1080,7 @@ data:
         "h": 4,
         "w": 3,
         "x": 3,
-        "y": 31
+        "y": 46
        },
        "fieldConfig": {
         "defaults": {
@@ -930,7 +1130,7 @@ data:
        ]
       },
       {
-       "id": 119,
+       "id": 124,
        "type": "stat",
        "title": "Load 1m",
        "datasource": {
@@ -941,7 +1141,7 @@ data:
         "h": 4,
         "w": 3,
         "x": 6,
-        "y": 31
+        "y": 46
        },
        "fieldConfig": {
         "defaults": {
@@ -991,7 +1191,7 @@ data:
        ]
       },
       {
-       "id": 120,
+       "id": 125,
        "type": "stat",
        "title": "Antal datasets",
        "datasource": {
@@ -1002,7 +1202,7 @@ data:
         "h": 4,
         "w": 3,
         "x": 9,
-        "y": 31
+        "y": 46
        },
        "fieldConfig": {
         "defaults": {
@@ -1052,7 +1252,7 @@ data:
        ]
       },
       {
-       "id": 121,
+       "id": 126,
        "type": "timeseries",
        "title": "ZFS dataset brugt %",
        "datasource": {
@@ -1063,7 +1263,7 @@ data:
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 36
+        "y": 51
        },
        "fieldConfig": {
         "defaults": {
@@ -1107,7 +1307,7 @@ data:
        ]
       },
       {
-       "id": 122,
+       "id": 127,
        "type": "timeseries",
        "title": "ZFS dataset ledig plads",
        "datasource": {
@@ -1118,7 +1318,7 @@ data:
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 36
+        "y": 51
        },
        "fieldConfig": {
         "defaults": {
@@ -1162,7 +1362,7 @@ data:
        ]
       },
       {
-       "id": 123,
+       "id": 128,
        "type": "timeseries",
        "title": "CPU % og load",
        "datasource": {
@@ -1173,7 +1373,7 @@ data:
         "h": 8,
         "w": 6,
         "x": 0,
-        "y": 45
+        "y": 60
        },
        "fieldConfig": {
         "defaults": {
@@ -1228,7 +1428,7 @@ data:
        ]
       },
       {
-       "id": 124,
+       "id": 129,
        "type": "timeseries",
        "title": "Disk aktivitet (alle pools)",
        "datasource": {
@@ -1239,7 +1439,7 @@ data:
         "h": 8,
         "w": 6,
         "x": 6,
-        "y": 45
+        "y": 60
        },
        "fieldConfig": {
         "defaults": {
@@ -1294,7 +1494,7 @@ data:
        ]
       },
       {
-       "id": 125,
+       "id": 130,
        "type": "timeseries",
        "title": "Netværk mod / fra",
        "datasource": {
@@ -1305,7 +1505,7 @@ data:
         "h": 8,
         "w": 6,
         "x": 12,
-        "y": 45
+        "y": 60
        },
        "fieldConfig": {
         "defaults": {
@@ -1360,14 +1560,14 @@ data:
        ]
       },
       {
-       "id": 126,
+       "id": 131,
        "type": "text",
        "title": "Mangler på TrueNAS-rækken",
        "gridPos": {
         "h": 9,
         "w": 6,
         "x": 18,
-        "y": 45
+        "y": 60
        },
        "options": {
         "mode": "markdown",
