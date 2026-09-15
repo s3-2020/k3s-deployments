@@ -18,11 +18,12 @@ spec:
         - path:
             type: PathPrefix
             value: /
-      # lan-only (ipAllowList) er taget ud 2026-09-15: den gav 403 for alle,
-      # også for en vært på 10.22.10.120 som ligger midt i den tilladte 10.22.0.0/16.
-      # Traefik-tjenesten kører med externalTrafficPolicy: Cluster, så Cilium
-      # omskriver kilde-adressen før Traefik ser den — listeren vurderer altså ikke
-      # klienten. Sættes ind igen når klient-IP bevares (se k3s-gitops docs/05).
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: traefik.io
+            kind: Middleware
+            name: lan-only
 
       backendRefs:
         - group: ""
