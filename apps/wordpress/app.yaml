@@ -35,6 +35,12 @@ spec:
     metadata:
       labels: { app: wordpress }
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox:1.37
+          command: ["sh", "-c", "chown -R 33:33 /var/www/html/wp-content"]
+          volumeMounts:
+            - { name: content, mountPath: /var/www/html/wp-content }
       containers:
         - name: wordpress
           image: wordpress:7.1.0-php8.3-apache
@@ -53,6 +59,7 @@ spec:
               value: |
                 define('WP_MEMORY_LIMIT', '512M');
                 define('WP_MAX_MEMORY_LIMIT', '512M');
+                define('FS_METHOD', 'direct');
           volumeMounts:
             - { name: content, mountPath: /var/www/html/wp-content }
             - { name: php-uploads, mountPath: /usr/local/etc/php/conf.d/99-uploads.ini, subPath: uploads.ini }

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phpmyadmin
+  namespace: pma
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: phpmyadmin }
+  template:
+    metadata:
+      labels: { app: phpmyadmin }
+    spec:
+      containers:
+        - name: phpmyadmin
+          image: phpmyadmin:5.2
+          ports: [{ containerPort: 80 }]
+          env:
+            - name: PMA_ARBITRARY
+              value: "1"
+            - name: UPLOAD_LIMIT
+              value: 64M
+            - name: PMA_BLOWFISH_SECRET
+              valueFrom:
+                secretKeyRef: { name: phpmyadmin, key: blowfish-secret }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phpmyadmin
+  namespace: pma
+spec:
+  selector: { app: phpmyadmin }
+  ports: [{ port: 80, targetPort: 80 }]

@@ -12,4 +12,5 @@ resources:
   - rancher
   - wordpress
   - dev
+  - pma
   - prometheus
