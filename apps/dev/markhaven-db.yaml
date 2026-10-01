@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: wordpress-db
-  namespace: wp-markhaven
+  name: markhaven-db
+  namespace: dev
 spec:
-  serviceName: wordpress-db
+  serviceName: markhaven-db
   replicas: 1
   selector:
-    matchLabels: { app: wordpress-db }
+    matchLabels: { app: markhaven-db }
   template:
     metadata:
-      labels: { app: wordpress-db }
+      labels: { app: markhaven-db }
     spec:
       containers:
         - name: mariadb
@@ -20,14 +20,14 @@ spec:
           env:
             - name: MARIADB_ROOT_PASSWORD
               valueFrom:
-                secretKeyRef: { name: wp-markhaven-db, key: root-password }
+                secretKeyRef: { name: markhaven-db, key: root-password }
             - name: MARIADB_DATABASE
               value: wordpress
             - name: MARIADB_USER
               value: wordpress
             - name: MARIADB_PASSWORD
               valueFrom:
-                secretKeyRef: { name: wp-markhaven-db, key: wp-password }
+                secretKeyRef: { name: markhaven-db, key: wp-password }
           volumeMounts:
             - { name: data, mountPath: /var/lib/mysql }
           resources:
@@ -42,9 +42,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: wordpress-db
-  namespace: wp-markhaven
+  name: markhaven-db
+  namespace: dev
 spec:
   clusterIP: None
-  selector: { app: wordpress-db }
+  selector: { app: markhaven-db }
   ports: [{ port: 3306 }]

@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: wordpress-content
-  namespace: wp-usv
+  name: markhaven-content
+  namespace: dev
 spec:
   storageClassName: truenas-iscsi
   accessModes: ["ReadWriteOnce"]
@@ -11,8 +11,8 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: wordpress-php-uploads
-  namespace: wp-usv
+  name: markhaven-php-uploads
+  namespace: dev
 data:
   uploads.ini: |
     upload_max_filesize = 64M
@@ -23,17 +23,17 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress
-  namespace: wp-usv
+  name: markhaven
+  namespace: dev
 spec:
   replicas: 1
   selector:
-    matchLabels: { app: wordpress }
+    matchLabels: { app: markhaven }
   strategy:
-    type: Recreate          # shared RWO volume — never two pods at once
+    type: Recreate
   template:
     metadata:
-      labels: { app: wordpress }
+      labels: { app: markhaven }
     spec:
       containers:
         - name: wordpress
@@ -41,17 +41,18 @@ spec:
           ports: [{ containerPort: 80 }]
           env:
             - name: WORDPRESS_DB_HOST
-              value: wordpress-db
+              value: markhaven-db
             - name: WORDPRESS_DB_USER
               value: wordpress
             - name: WORDPRESS_DB_NAME
               value: wordpress
             - name: WORDPRESS_DB_PASSWORD
               valueFrom:
-                secretKeyRef: { name: wp-usv-db, key: wp-password }
+                secretKeyRef: { name: markhaven-db, key: wp-password }
             - name: WORDPRESS_CONFIG_EXTRA
-              valueFrom:
-                secretKeyRef: { name: wp-usv-db, key: wp-config-extra }
+              value: |
+                define('WP_MEMORY_LIMIT', '512M');
+                define('WP_MAX_MEMORY_LIMIT', '512M');
           volumeMounts:
             - { name: content, mountPath: /var/www/html/wp-content }
             - { name: php-uploads, mountPath: /usr/local/etc/php/conf.d/99-uploads.ini, subPath: uploads.ini }
@@ -59,15 +60,15 @@ spec:
             requests: { cpu: 100m, memory: 512Mi }
       volumes:
         - name: content
-          persistentVolumeClaim: { claimName: wordpress-content }
+          persistentVolumeClaim: { claimName: markhaven-content }
         - name: php-uploads
-          configMap: { name: wordpress-php-uploads }
+          configMap: { name: markhaven-php-uploads }
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: wordpress
-  namespace: wp-usv
+  name: markhaven
+  namespace: dev
 spec:
-  selector: { app: wordpress }
+  selector: { app: markhaven }
   ports: [{ port: 80, targetPort: 80 }]

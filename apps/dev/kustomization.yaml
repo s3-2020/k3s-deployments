@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  - usv-db.yaml
+  - usv.yaml
+  - usv-httproute.yaml
+  - markhaven-db.yaml
+  - markhaven.yaml
+  - markhaven-httproute.yaml

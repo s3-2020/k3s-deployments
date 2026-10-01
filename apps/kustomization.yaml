@@ -11,7 +11,5 @@ resources:
   - flux
   - rancher
   - wordpress
-  - wp-usv
-  - wp-markhaven
-  - wp-dev
+  - dev
   - prometheus
