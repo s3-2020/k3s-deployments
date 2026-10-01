@@ -13,4 +13,5 @@ resources:
   - wordpress
   - wp-usv
   - wp-markhaven
+  - wp-dev
   - prometheus
