@@ -9,3 +9,5 @@ resources:
   - markhaven-db.yaml
   - markhaven.yaml
   - markhaven-httproute.yaml
+  - markhaven-adminauth.yaml
+  - markhaven-adminroute.yaml
