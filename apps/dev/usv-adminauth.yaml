@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: usv-admin-auth
+  namespace: dev
+spec:
+  basicAuth:
+    secret: usv-admin-auth

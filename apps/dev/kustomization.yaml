@@ -6,6 +6,8 @@ resources:
   - usv-db.yaml
   - usv.yaml
   - usv-httproute.yaml
+  - usv-adminauth.yaml
+  - usv-adminroute.yaml
   - markhaven-db.yaml
   - markhaven.yaml
   - markhaven-httproute.yaml
