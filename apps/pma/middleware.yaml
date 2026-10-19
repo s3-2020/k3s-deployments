@@ -7,4 +7,5 @@ spec:
   ipAllowList:
     sourceRange:
       - 10.22.0.0/16
+      - 192.168.2.0/24   # WireGuard VPN-klienter
       - 127.0.0.1/32
