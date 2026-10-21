@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phpmyadmin-php
+  namespace: pma
+data:
+  security.ini: |
+    ; Mitigering for CVE-2026-109618 / CVE-2026-109619 (PHP2Shell)
+    ; phpmyadmin:5.2 images er stadig bygget pa PHP 8.3.35 (pre-fix).
+    ; Fjern igen nar image er rebuildet med PHP >= 8.3.36 (tjek: kubectl exec ... -- php -r "echo PHP_VERSION;")
+    session.upload_progress.enabled = 0
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -23,8 +35,13 @@ spec:
             - name: PMA_BLOWFISH_SECRET
               valueFrom:
                 secretKeyRef: { name: phpmyadmin, key: blowfish-secret }
+          volumeMounts:
+            - { name: php-security, mountPath: /usr/local/etc/php/conf.d/zz-security.ini, subPath: security.ini }
           resources:
             requests: { cpu: 50m, memory: 128Mi }
+      volumes:
+        - name: php-security
+          configMap: { name: phpmyadmin-php }
 ---
 apiVersion: v1
 kind: Service
