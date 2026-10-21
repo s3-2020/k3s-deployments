@@ -19,6 +19,9 @@ data:
     post_max_size = 64M
     memory_limit = 512M
     max_execution_time = 300
+    ; Mitigering for CVE-2026-109618 / CVE-2026-109619 (PHP2Shell)
+    ; Fjern igen nar PHP er opdateret til >= 8.3.36
+    session.upload_progress.enabled = 0
 ---
 apiVersion: apps/v1
 kind: Deployment
