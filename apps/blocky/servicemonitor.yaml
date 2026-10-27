@@ -12,4 +12,5 @@ spec:
   endpoints:
     - port: api
       path: /metrics
-      interval: 30s
+      # 60s: power plan 2026-10 — aligns with prometheusSpec.scrapeInterval
+      interval: 60s
